@@ -2,4 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/zkakdxqb/testing.techotd.com
-    - /bin/cp -R $CPANEL_BASE_INSTALL_PATH/. $DEPLOYPATH
+    - /bin/cp -R . $DEPLOYPATH
