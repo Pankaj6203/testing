@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CI/CD Setup Guide — GitHub + cPanel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            color: #1a1a2e;
+            background: #fff;
+            line-height: 1.6;
+        }
+
+        @media print {
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+            body { font-size: 12px; }
+        }
+
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999;
+            box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+        }
+
+        .cover {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 50%, #0f0f1a 100%);
+            color: white;
+            padding: 80px 60px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cover .badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.3);
+            border: 1px solid rgba(99,102,241,0.5);
+            color: #a5b4fc;
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        .cover h1 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cover p {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-bottom: 48px;
+            max-width: 500px;
+        }
+
+        .cover .meta {
+            display: flex;
+            gap: 32px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .cover .meta span { display: flex; align-items: center; gap: 6px; }
+
+        .cover .stack {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .cover .tag {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .content {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 48px 40px;
+        }
+
+        .toc {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 32px 40px;
+            margin-bottom: 48px;
+        }
+
+        .toc h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .toc ol {
+            list-style: none;
+            counter-reset: toc;
+        }
+
+        .toc ol li {
+            counter-increment: toc;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toc ol li:last-child { border-bottom: none; }
+
+        .toc ol li::before {
+            content: counter(toc, decimal-leading-zero);
+            font-size: 11px;
+            font-weight: 700;
+            color: #4f46e5;
+            min-width: 24px;
+        }
+
+        .toc ol li span { color: #475569; font-size: 13px; }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .section-header p {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 20px 0 10px;
+        }
+
+        p { color: #475569; margin-bottom: 12px; }
+
+        .steps {
+            counter-reset: steps;
+            list-style: none;
+        }
+
+        .steps li {
+            counter-increment: steps;
+            display: flex;
+            gap: 14px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .steps li::before {
+            content: counter(steps);
+            width: 24px;
+            height: 24px;
+            background: #4f46e5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .steps li span { color: #334155; }
+
+        code {
+            background: #1e1e3f;
+            color: #a5b4fc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px 24px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            border-left: 4px solid #4f46e5;
+            line-height: 1.7;
+        }
+
+        pre .comment { color: #64748b; }
+        pre .keyword { color: #a5b4fc; }
+        pre .string { color: #86efac; }
+        pre .command { color: #fbbf24; }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #1e1e3f;
+            color: #a5b4fc;
+            padding: 10px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        tr:nth-child(even) td { background: #f8fafc; }
+
+        .note {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 16px 0;
+        }
+
+        .note strong { color: #1d4ed8; font-size: 12px; }
+        .note p { color: #1e40af; margin: 4px 0 0; font-size: 12px; }
+
+        .warning {
+            background: #fff7ed;
+            border-left: 4px solid #f97316;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 16px 0;
+        }
+
+        .warning strong { color: #c2410c; font-size: 12px; }
+        .warning p { color: #9a3412; margin: 4px 0 0; font-size: 12px; }
+
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 16px 0;
+        }
+
+        .success strong { color: #15803d; font-size: 12px; }
+        .success p { color: #166534; margin: 4px 0 0; font-size: 12px; }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flow-box {
+            background: #1e1e3f;
+            color: #a5b4fc;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            color: #4f46e5;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .file-tree {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 20px 24px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        .file-tree .folder { color: #fbbf24; }
+        .file-tree .file { color: #86efac; }
+        .file-tree .important { color: #f472b6; }
+
+        .checklist {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #334155;
+            font-size: 12px;
+        }
+
+        .checklist li::before {
+            content: '☐';
+            font-size: 16px;
+            color: #4f46e5;
+        }
+
+        .footer {
+            background: #0f172a;
+            color: #64748b;
+            text-align: center;
+            padding: 32px;
+            font-size: 12px;
+            margin-top: 60px;
+        }
+
+        .footer strong { color: #a5b4fc; }
+    </style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()">Save as PDF</button>
+
+<!-- COVER PAGE -->
+<div class="cover">
+    <div class="badge">Complete Guide</div>
+    <h1>CI/CD Pipeline Setup<br>GitHub + cPanel</h1>
+    <p>Step-by-step guide to set up automatic deployment from GitHub to cPanel hosting using Git Version Control.</p>
+    <div class="meta">
+        <span>📅 June 2026</span>
+        <span>⏱ 30 min setup</span>
+        <span>🎯 Any PHP/HTML Project</span>
+    </div>
+    <div class="stack">
+        <span class="tag">GitHub</span>
+        <span class="tag">cPanel Git Version Control</span>
+        <span class="tag">.cpanel.yml</span>
+        <span class="tag">MilesWeb / Any cPanel Host</span>
+        <span class="tag">PHP / HTML</span>
+    </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+    <!-- TABLE OF CONTENTS -->
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ol>
+            <li><span>Overview — How the Pipeline Works</span></li>
+            <li><span>Prerequisites — What You Need</span></li>
+            <li><span>Step 1 — Create GitHub Repository</span></li>
+            <li><span>Step 2 — Create Local Project with .cpanel.yml</span></li>
+            <li><span>Step 3 — Push Project to GitHub</span></li>
+            <li><span>Step 4 — Create Subdomain on cPanel</span></li>
+            <li><span>Step 5 — Connect GitHub to cPanel Git Version Control</span></li>
+            <li><span>Step 6 — Deploy for the First Time</span></li>
+            <li><span>Step 7 — Auto-Deploy with GitHub Webhook</span></li>
+            <li><span>Troubleshooting Common Errors</span></li>
+            <li><span>Daily Workflow After Setup</span></li>
+        </ol>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">→</div>
+            <div>
+                <h2>Overview — How the Pipeline Works</h2>
+                <p>Understand the full flow before starting</p>
+            </div>
+        </div>
+
+        <div class="flow">
+            <div class="flow-box">Local Code<br><small>VS Code</small></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">git push<br><small>Terminal</small></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">GitHub<br><small>Repository</small></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">Webhook<br><small>Auto trigger</small></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">cPanel<br><small>Git Version Control</small></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">Live Site<br><small>yourdomain.com</small></div>
+        </div>
+
+        <p>The <strong>.cpanel.yml</strong> file in your repo tells cPanel exactly where to copy the files after each deploy. Once the GitHub webhook is set up, every <code>git push</code> automatically triggers deployment — no manual steps needed.</p>
+    </div>
+
+    <!-- PREREQUISITES -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">✓</div>
+            <div>
+                <h2>Prerequisites</h2>
+                <p>Make sure you have these before starting</p>
+            </div>
+        </div>
+
+        <ul class="checklist">
+            <li>GitHub account (github.com)</li>
+            <li>cPanel hosting account (MilesWeb, Hostinger, Namecheap, etc.)</li>
+            <li>Git installed on your PC — check with <code>git --version</code></li>
+            <li>A code editor (VS Code recommended)</li>
+            <li>Your cPanel username (shown on cPanel dashboard)</li>
+        </ul>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="section page-break">
+        <div class="section-header">
+            <div class="step-num">1</div>
+            <div>
+                <h2>Create GitHub Repository</h2>
+                <p>Set up the remote repository on GitHub</p>
+            </div>
+        </div>
+
+        <ol class="steps">
+            <li><span>Go to <strong>github.com</strong> and log in</span></li>
+            <li><span>Click <strong>"+"</strong> → <strong>"New repository"</strong></span></li>
+            <li><span>Enter Repository name (e.g. <code>myproject</code>)</span></li>
+            <li><span>Set to <strong>Public</strong> or <strong>Private</strong></span></li>
+            <li><span><strong>Do NOT check</strong> "Add a README file"</span></li>
+            <li><span>Click <strong>"Create repository"</strong></span></li>
+            <li><span>Copy the HTTPS URL — e.g. <code>https://github.com/username/myproject.git</code></span></li>
+        </ol>
+
+        <div class="warning">
+            <strong>⚠ Important</strong>
+            <p>Do not initialize with README, .gitignore, or license. Keep it completely empty so it doesn't conflict with your local project.</p>
+        </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">2</div>
+            <div>
+                <h2>Create Local Project with .cpanel.yml</h2>
+                <p>Set up your project folder with the deployment config</p>
+            </div>
+        </div>
+
+        <h3>Project folder structure</h3>
+        <div class="file-tree">
+            <span class="folder">myproject/</span><br>
+            &nbsp;&nbsp;├── <span class="important">.cpanel.yml</span> &nbsp;&nbsp;<span style="color:#64748b">← deployment config (required)</span><br>
+            &nbsp;&nbsp;├── <span class="file">.gitignore</span><br>
+            &nbsp;&nbsp;├── <span class="file">index.php</span><br>
+            &nbsp;&nbsp;└── <span class="file">style.css</span>
+        </div>
+
+        <h3>The .cpanel.yml file (most important file)</h3>
+        <pre><span class="comment">--- </span>
+<span class="keyword">deployment:</span>
+  <span class="keyword">tasks:</span>
+    - export DEPLOYPATH=<span class="string">/home/YOUR_USERNAME/your-subdomain.com</span>
+    - /bin/cp -R . $DEPLOYPATH</pre>
+
+        <div class="note">
+            <strong>ℹ Replace these values</strong>
+            <p><strong>YOUR_USERNAME</strong> → your cPanel username (e.g. zkakdxqb)<br>
+            <strong>your-subdomain.com</strong> → the folder name of your subdomain (e.g. ci.techotd.in)</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠ Never use $CPANEL_BASE_INSTALL_PATH</strong>
+            <p>This variable is undefined and will copy the entire root filesystem into your deployment folder, filling up your disk quota. Always use <code>.</code> (dot) which means current directory.</p>
+        </div>
+
+        <h3>Initialize Git locally</h3>
+        <pre><span class="comment"># Run these in your project folder (PowerShell / Terminal)</span>
+<span class="command">git init</span>
+<span class="command">git branch -m master main</span>
+<span class="command">git add .</span>
+<span class="command">git commit -m "Initial commit"</span></pre>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="section page-break">
+        <div class="section-header">
+            <div class="step-num">3</div>
+            <div>
+                <h2>Push Project to GitHub</h2>
+                <p>Connect local repo to GitHub and push</p>
+            </div>
+        </div>
+
+        <pre><span class="comment"># Add GitHub as remote origin</span>
+<span class="command">git remote add origin https://github.com/USERNAME/REPO.git</span>
+
+<span class="comment"># Push to GitHub (browser will open for login first time)</span>
+<span class="command">git push -u origin main</span></pre>
+
+        <div class="note">
+            <strong>ℹ First-time Authentication</strong>
+            <p>On Windows, Git Credential Manager will open a browser window for GitHub login. Log in once — it saves credentials automatically for future pushes.</p>
+        </div>
+
+        <p>After push, verify your files are visible at <code>github.com/USERNAME/REPO</code></p>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">4</div>
+            <div>
+                <h2>Create Subdomain on cPanel</h2>
+                <p>Set up where the site will be served from</p>
+            </div>
+        </div>
+
+        <ol class="steps">
+            <li><span>Log in to cPanel</span></li>
+            <li><span>Go to <strong>Domains</strong> → <strong>Subdomains</strong> (or just "Domains")</span></li>
+            <li><span>Enter subdomain name (e.g. <code>ci</code>) → select your main domain</span></li>
+            <li><span>Document root will auto-fill as <code>public_html/ci</code> — you can change it</span></li>
+            <li><span>Click <strong>Create</strong></span></li>
+        </ol>
+
+        <div class="note">
+            <strong>ℹ Note the document root path</strong>
+            <p>When the subdomain is created, cPanel shows the full path like <code>/home/zkakdxqb/ci.techotd.in</code>. This is the path you put in .cpanel.yml as DEPLOYPATH.</p>
+        </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="section page-break">
+        <div class="section-header">
+            <div class="step-num">5</div>
+            <div>
+                <h2>Connect GitHub to cPanel Git Version Control</h2>
+                <p>Clone your GitHub repo inside cPanel</p>
+            </div>
+        </div>
+
+        <ol class="steps">
+            <li><span>In cPanel, search for <strong>"Git Version Control"</strong> and open it</span></li>
+            <li><span>Click <strong>"Create"</strong></span></li>
+            <li><span>Enable <strong>"Clone a Repository"</strong> toggle</span></li>
+            <li><span>Fill in the form:</span></li>
+        </ol>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td><strong>Clone URL</strong></td>
+                    <td>Your GitHub HTTPS URL</td>
+                    <td><code>https://github.com/user/repo.git</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Repository Path</strong></td>
+                    <td>A separate folder (NOT the subdomain folder)</td>
+                    <td><code>repositories/myproject</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Repository Name</strong></td>
+                    <td>Any display name</td>
+                    <td><code>myproject</code></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="warning">
+            <strong>⚠ Critical: Repository Path must NOT be your subdomain folder</strong>
+            <p>Use <code>repositories/myproject</code> NOT <code>ci.techotd.in</code>. The .cpanel.yml handles copying files to the subdomain folder. If repo and deploy folder are the same, the copy command will fail.</p>
+        </div>
+
+        <ol class="steps" start="5">
+            <li><span>Click <strong>"Create"</strong> — cPanel will clone your repo</span></li>
+            <li><span>Wait for "Clone is complete" message</span></li>
+        </ol>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">6</div>
+            <div>
+                <h2>Deploy for the First Time</h2>
+                <p>Manually trigger the first deployment</p>
+            </div>
+        </div>
+
+        <ol class="steps">
+            <li><span>In Git Version Control, click <strong>"Manage"</strong> next to your repo</span></li>
+            <li><span>Go to <strong>"Pull or Deploy"</strong> tab</span></li>
+            <li><span>Click <strong>"Deploy HEAD Commit"</strong></span></li>
+            <li><span>Wait for deployment to complete</span></li>
+            <li><span>Open your subdomain in browser to verify</span></li>
+        </ol>
+
+        <div class="success">
+            <strong>✅ Success!</strong>
+            <p>If your site loads correctly, the pipeline is working. The .cpanel.yml copied your files from the repo to your subdomain's document root.</p>
+        </div>
+
+        <div class="note">
+            <strong>ℹ What "Update from Remote" vs "Deploy HEAD Commit" does</strong>
+            <p>
+                <strong>Update from Remote</strong> — pulls latest commits from GitHub into cPanel's local copy of the repo. Does NOT deploy files.<br>
+                <strong>Deploy HEAD Commit</strong> — runs the .cpanel.yml tasks and copies files to your subdomain folder. This is the actual deploy.
+            </p>
+        </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="section page-break">
+        <div class="section-header">
+            <div class="step-num">7</div>
+            <div>
+                <h2>Auto-Deploy with GitHub Webhook</h2>
+                <p>Every git push triggers automatic deployment</p>
+            </div>
+        </div>
+
+        <p>Currently, after every push you need to manually click "Update from Remote" + "Deploy HEAD Commit" in cPanel. Set up a webhook to automate this.</p>
+
+        <h3>Get the cPanel Webhook URL</h3>
+        <ol class="steps">
+            <li><span>In cPanel Git Version Control, click <strong>"Manage"</strong></span></li>
+            <li><span>Under <strong>"Basic Information"</strong> tab, find the <strong>Clone URL</strong> section</span></li>
+            <li><span>Look for a <strong>webhook URL</strong> or use the cPanel API endpoint</span></li>
+        </ol>
+
+        <h3>Using cPanel's built-in webhook endpoint</h3>
+        <pre><span class="comment"># cPanel webhook URL format:</span>
+https://YOUR_CPANEL_DOMAIN:2083/cpsess.../frontend/jupiter/
+  version_control/index.html#<span class="string">/webhook/REPO_NAME</span></pre>
+
+        <h3>Add webhook on GitHub</h3>
+        <ol class="steps">
+            <li><span>Go to your GitHub repo → <strong>Settings</strong> → <strong>Webhooks</strong></span></li>
+            <li><span>Click <strong>"Add webhook"</strong></span></li>
+            <li><span>Paste the cPanel webhook URL in <strong>Payload URL</strong></span></li>
+            <li><span>Content type: <code>application/json</code></span></li>
+            <li><span>Select <strong>"Just the push event"</strong></span></li>
+            <li><span>Click <strong>"Add webhook"</strong></span></li>
+        </ol>
+
+        <div class="note">
+            <strong>ℹ Alternative: Use GitHub Actions</strong>
+            <p>If cPanel webhook doesn't work directly, use GitHub Actions with SSH to trigger cPanel deployment. Create a <code>.github/workflows/deploy.yml</code> file in your repo.</p>
+        </div>
+
+        <h3>GitHub Actions alternative (deploy.yml)</h3>
+        <pre><span class="keyword">name:</span> Deploy to cPanel
+<span class="keyword">on:</span>
+  <span class="keyword">push:</span>
+    <span class="keyword">branches:</span> [main]
+
+<span class="keyword">jobs:</span>
+  <span class="keyword">deploy:</span>
+    <span class="keyword">runs-on:</span> ubuntu-latest
+    <span class="keyword">steps:</span>
+      - <span class="keyword">uses:</span> actions/checkout@v3
+      - <span class="keyword">name:</span> Deploy via SSH
+        <span class="keyword">uses:</span> appleboy/ssh-action@master
+        <span class="keyword">with:</span>
+          <span class="keyword">host:</span> <span class="string">${{ secrets.CPANEL_HOST }}</span>
+          <span class="keyword">username:</span> <span class="string">${{ secrets.CPANEL_USER }}</span>
+          <span class="keyword">password:</span> <span class="string">${{ secrets.CPANEL_PASS }}</span>
+          <span class="keyword">script:</span> |
+            cd ~/repositories/myproject
+            git pull origin main
+            cp -R . ~/ci.techotd.in/</pre>
+    </div>
+
+    <!-- TROUBLESHOOTING -->
+    <div class="section page-break">
+        <div class="section-header">
+            <div class="step-num">!</div>
+            <div>
+                <h2>Troubleshooting Common Errors</h2>
+                <p>Fix these issues if something goes wrong</p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Error</th>
+                    <th>Cause</th>
+                    <th>Fix</th>
+                </tr>
+                <tr>
+                    <td><code>Disk quota exceeded</code></td>
+                    <td>Failed deploy copied system files. Trash folder is full.</td>
+                    <td>Run: <code>rm -rf ~/.trash/*</code> in cPanel Terminal</td>
+                </tr>
+                <tr>
+                    <td><code>Directory already contains files</code></td>
+                    <td>Old repo folder exists from previous setup</td>
+                    <td>Run: <code>rm -rf ~/repositories/myproject</code></td>
+                </tr>
+                <tr>
+                    <td>Files deployed to wrong location</td>
+                    <td><code>$CPANEL_BASE_INSTALL_PATH</code> used instead of <code>.</code></td>
+                    <td>Fix .cpanel.yml: use <code>/bin/cp -R . $DEPLOYPATH</code></td>
+                </tr>
+                <tr>
+                    <td><code>could not read Username</code></td>
+                    <td>Git Credential Manager can't open browser in automated terminal</td>
+                    <td>Run <code>git push</code> in your regular terminal (not Claude Code terminal)</td>
+                </tr>
+                <tr>
+                    <td>Site shows old content after deploy</td>
+                    <td>cPanel has old version; didn't pull latest</td>
+                    <td>Click "Update from Remote" first, then "Deploy HEAD Commit"</td>
+                </tr>
+                <tr>
+                    <td><code>Died at VersionControl/Cache.pm</code></td>
+                    <td>Disk quota exceeded — cPanel can't write temp files</td>
+                    <td>Free disk space: empty trash, delete unused files</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>Check disk usage in cPanel Terminal</h3>
+        <pre><span class="comment"># Find which hidden folders are large</span>
+<span class="command">du -sh ~/.[^.]* 2>/dev/null | sort -rh | head -20</span>
+
+<span class="comment"># Empty trash (most common fix)</span>
+<span class="command">rm -rf ~/.trash/*</span>
+
+<span class="comment"># Check total disk usage</span>
+<span class="command">du -sh ~</span></pre>
+    </div>
+
+    <!-- DAILY WORKFLOW -->
+    <div class="section">
+        <div class="section-header">
+            <div class="step-num">✓</div>
+            <div>
+                <h2>Daily Workflow After Setup</h2>
+                <p>What you do every time you make changes</p>
+            </div>
+        </div>
+
+        <h3>Without auto-deploy (manual)</h3>
+        <pre><span class="comment"># 1. Make changes to your files locally</span>
+<span class="comment"># 2. Stage and commit</span>
+<span class="command">git add .</span>
+<span class="command">git commit -m "description of change"</span>
+
+<span class="comment"># 3. Push to GitHub</span>
+<span class="command">git push</span>
+
+<span class="comment"># 4. Go to cPanel → Git Version Control → Manage</span>
+<span class="comment"># 5. Click "Update from Remote"</span>
+<span class="comment"># 6. Click "Deploy HEAD Commit"</span></pre>
+
+        <h3>With auto-deploy (webhook configured)</h3>
+        <pre><span class="comment"># Just these 3 commands — deploy happens automatically!</span>
+<span class="command">git add .</span>
+<span class="command">git commit -m "description of change"</span>
+<span class="command">git push</span></pre>
+
+        <div class="success">
+            <strong>✅ Pipeline Complete</strong>
+            <p>Your CI/CD pipeline is live. Every push to the <code>main</code> branch will automatically update your website at your subdomain.</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <strong>CI/CD Pipeline Guide — GitHub + cPanel</strong><br>
+    techotd.in &nbsp;|&nbsp; Created June 2026
+</div>
+
+</body>
+</html>
