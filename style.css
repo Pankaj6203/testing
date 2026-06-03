@@ -4,6 +4,29 @@
     box-sizing: border-box;
 }
 
+.navbar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: #12122a;
+    border-bottom: 1px solid #1e1e3f;
+}
+
+.navbar a {
+    color: #94a3b8;
+    text-decoration: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.navbar a:hover, .navbar a.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+}
+
 body {
     font-family: 'Segoe UI', sans-serif;
     background: #0f0f1a;

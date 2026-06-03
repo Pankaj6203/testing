@@ -12,6 +12,11 @@ $deployed_at = date("Y-m-d H:i:s");
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav class="navbar">
+        <a href="index.php" class="active">Home</a>
+        <a href="about.php">About</a>
+        <a href="contact.php">Contact</a>
+    </nav>
     <div class="container">
         <div class="card">
             <div class="status-dot"></div>
