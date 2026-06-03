@@ -1,6 +1,6 @@
 <?php
 $message = "Pipeline Working!";
-$version = "v1.0";
+$version = "v2.0";
 $deployed_at = date("Y-m-d H:i:s");
 ?>
 <!DOCTYPE html>
