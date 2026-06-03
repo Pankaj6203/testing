@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/zkakdxqb/testing.techotd.com
+    - export DEPLOYPATH=/home/zkakdxqb/ci.techotd.in
     - /bin/cp -R . $DEPLOYPATH
