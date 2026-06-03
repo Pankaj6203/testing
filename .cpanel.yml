@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/public_html/testing
+    - /bin/cp -R $CPANEL_BASE_INSTALL_PATH/. $DEPLOYPATH
